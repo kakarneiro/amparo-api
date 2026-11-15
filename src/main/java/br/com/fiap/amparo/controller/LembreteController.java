@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/lembretes")
@@ -26,6 +27,12 @@ public class LembreteController {
     public Page<LembreteResponse> listar(
             @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
         return service.listar(pageable);
+    }
+
+    /** Lembretes ativos de um cidadao (cacheado). */
+    @GetMapping("/cidadao/{cidadaoId}")
+    public List<LembreteResponse> ativosPorCidadao(@PathVariable Long cidadaoId) {
+        return service.listarAtivosPorCidadao(cidadaoId);
     }
 
     @GetMapping("/{id}")
