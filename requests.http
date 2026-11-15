@@ -239,3 +239,45 @@ Content-Type: application/json
 X-Device-Token: esp32-amparo-dev-token
 
 { "codigoSerial": "ESP32-0001", "tipo": "BOTAO_EMERGENCIA", "descricao": "Botao pressionado" }
+
+### ===== ETAPA 4: CACHE, HATEOAS, ACTUATOR, SWAGGER =====
+
+### HATEOAS: repare nos _links (self, cuidadores, eventos, lembretes, atualizar, excluir)
+GET {{host}}/cidadaos/1
+Authorization: Bearer {{tokenAdmin}}
+
+### HATEOAS: evento aberto tem links "escalar" e "alterar-status"; resolvido nao tem
+GET {{host}}/eventos/1
+Authorization: Bearer {{tokenAdmin}}
+
+### CACHE: chame 2x e veja no console que o SELECT so roda na primeira
+GET {{host}}/cidadaos/1/cuidadores
+Authorization: Bearer {{tokenAdmin}}
+
+### CACHE: criar um cuidador invalida; proximo GET volta a consultar o banco
+POST {{host}}/cuidadores
+Authorization: Bearer {{tokenAdmin}}
+Content-Type: application/json
+
+{ "nome": "Pedro Neto", "telefone": "11955550001", "parentesco": "Neto", "prioridade": 3, "cidadaoId": 1 }
+
+### Lembretes ativos do cidadao (cacheado)
+GET {{host}}/lembretes/cidadao/1
+Authorization: Bearer {{tokenAdmin}}
+
+### ACTUATOR (publico)
+GET {{host}}/actuator/health
+
+###
+GET {{host}}/actuator/info
+
+### ACTUATOR metrics (precisa de token)
+GET {{host}}/actuator/metrics
+Authorization: Bearer {{tokenAdmin}}
+
+###
+GET {{host}}/actuator/metrics/http.server.requests
+Authorization: Bearer {{tokenAdmin}}
+
+### SWAGGER: abrir no navegador
+# http://localhost:8080/swagger-ui.html
