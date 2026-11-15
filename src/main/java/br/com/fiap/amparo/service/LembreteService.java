@@ -6,10 +6,14 @@ import br.com.fiap.amparo.exception.ResourceNotFoundException;
 import br.com.fiap.amparo.model.Lembrete;
 import br.com.fiap.amparo.repository.LembreteRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -23,11 +27,21 @@ public class LembreteService {
         return repository.findAll(pageable).map(LembreteResponse::from);
     }
 
+    /** Lembretes ativos do cidadao, na ordem do dia. Cacheado: a home do app le isso sempre. */
+    @Cacheable(value = "lembretesPorCidadao", key = "#cidadaoId")
+    @Transactional(readOnly = true)
+    public List<LembreteResponse> listarAtivosPorCidadao(Long cidadaoId) {
+        cidadaoService.obter(cidadaoId);
+        return repository.findByCidadaoIdAndAtivoTrueOrderByHorarioAsc(cidadaoId)
+                .stream().map(LembreteResponse::from).toList();
+    }
+
     @Transactional(readOnly = true)
     public LembreteResponse buscar(Long id) {
         return LembreteResponse.from(obter(id));
     }
 
+    @CacheEvict(value = "lembretesPorCidadao", key = "#req.cidadaoId()")
     @Transactional
     public LembreteResponse criar(LembreteRequest req) {
         Lembrete l = new Lembrete();
@@ -35,6 +49,7 @@ public class LembreteService {
         return LembreteResponse.from(repository.save(l));
     }
 
+    @CacheEvict(value = "lembretesPorCidadao", allEntries = true)
     @Transactional
     public LembreteResponse atualizar(Long id, LembreteRequest req) {
         Lembrete l = obter(id);
@@ -42,6 +57,7 @@ public class LembreteService {
         return LembreteResponse.from(repository.save(l));
     }
 
+    @CacheEvict(value = "lembretesPorCidadao", allEntries = true)
     @Transactional
     public void excluir(Long id) {
         repository.delete(obter(id));

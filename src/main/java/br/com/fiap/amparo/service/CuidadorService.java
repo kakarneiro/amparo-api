@@ -6,6 +6,8 @@ import br.com.fiap.amparo.exception.ResourceNotFoundException;
 import br.com.fiap.amparo.model.Cuidador;
 import br.com.fiap.amparo.repository.CuidadorRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -25,7 +27,11 @@ public class CuidadorService {
         return repository.findAll(pageable).map(CuidadorResponse::from);
     }
 
-    /** Cadeia de acionamento do cidadao, em ordem de prioridade. */
+    /**
+     * Cadeia de acionamento do cidadao, em ordem de prioridade.
+     * Cacheada: e consultada a cada emergencia e precisa responder rapido.
+     */
+    @Cacheable(value = "cuidadoresPorCidadao", key = "#cidadaoId")
     @Transactional(readOnly = true)
     public List<CuidadorResponse> listarPorCidadao(Long cidadaoId) {
         cidadaoService.obter(cidadaoId); // garante 404 se o cidadao nao existir
@@ -38,6 +44,8 @@ public class CuidadorService {
         return CuidadorResponse.from(obter(id));
     }
 
+    /** Qualquer escrita em cuidador muda a cadeia: invalida o cache do cidadao dono. */
+    @CacheEvict(value = "cuidadoresPorCidadao", key = "#req.cidadaoId()")
     @Transactional
     public CuidadorResponse criar(CuidadorRequest req) {
         Cuidador c = new Cuidador();
@@ -45,6 +53,7 @@ public class CuidadorService {
         return CuidadorResponse.from(repository.save(c));
     }
 
+    @CacheEvict(value = "cuidadoresPorCidadao", allEntries = true)
     @Transactional
     public CuidadorResponse atualizar(Long id, CuidadorRequest req) {
         Cuidador c = obter(id);
@@ -52,6 +61,7 @@ public class CuidadorService {
         return CuidadorResponse.from(repository.save(c));
     }
 
+    @CacheEvict(value = "cuidadoresPorCidadao", allEntries = true)
     @Transactional
     public void excluir(Long id) {
         repository.delete(obter(id));

@@ -8,6 +8,9 @@ import br.com.fiap.amparo.model.Cidadao;
 import br.com.fiap.amparo.repository.CidadaoRepository;
 import br.com.fiap.amparo.specification.CidadaoSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -36,6 +39,8 @@ public class CidadaoService {
         return repository.findByNomeContainingIgnoreCase(nome, pageable).map(CidadaoResponse::from);
     }
 
+    /** Cache por id: o app abre a tela do cidadao muitas vezes e o cadastro muda pouco. */
+    @Cacheable(value = "cidadaos", key = "#id")
     @Transactional(readOnly = true)
     public CidadaoResponse buscar(Long id) {
         return CidadaoResponse.from(obter(id));
@@ -48,6 +53,8 @@ public class CidadaoService {
         return CidadaoResponse.from(repository.save(c));
     }
 
+    /** Escrita invalida o cache daquele id. */
+    @CacheEvict(value = "cidadaos", key = "#id")
     @Transactional
     public CidadaoResponse atualizar(Long id, CidadaoRequest req) {
         Cidadao c = obter(id);
@@ -55,6 +62,12 @@ public class CidadaoService {
         return CidadaoResponse.from(repository.save(c));
     }
 
+    /** Excluir remove o cidadao e, em cascata, cuidadores e lembretes: limpa os tres caches. */
+    @Caching(evict = {
+            @CacheEvict(value = "cidadaos", key = "#id"),
+            @CacheEvict(value = "cuidadoresPorCidadao", key = "#id"),
+            @CacheEvict(value = "lembretesPorCidadao", key = "#id")
+    })
     @Transactional
     public void excluir(Long id) {
         repository.delete(obter(id));
