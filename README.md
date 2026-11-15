@@ -17,8 +17,8 @@ expõe tudo para o aplicativo Mobile usado pelas famílias.
 | Nome | RM | Turma |
 |------|----|-------|
 | Matheus Carneiro Maciel | 567753 | 2TDSPB |
-| _preencher_ | _RM_ | _turma_ |
-| _preencher_ | _RM_ | _turma_ |
+| Murilo Marques Cabral | 568224 | 2TDSPB |
+| Paulo Henrique da Silva Kian | 563343 | 2TDSPB |
 
 ## Vídeo pitch
 
