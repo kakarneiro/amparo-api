@@ -171,3 +171,71 @@ Content-Type: application/json
 
 ###
 POST {{host}}/eventos/1/escalar
+
+### ===== ETAPA 3: SEGURANCA (JWT + papeis + token de dispositivo) =====
+# Usuarios de teste (perfil dev):
+#   admin@amparo.com / admin123  -> ADMIN
+#   ana@amparo.com   / ana123    -> CUIDADOR
+
+### Sem token -> 401
+GET {{host}}/cidadaos
+
+### Login ADMIN (copie o token da resposta para a variavel abaixo)
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{ "email": "admin@amparo.com", "senha": "admin123" }
+
+### Login CUIDADOR
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{ "email": "ana@amparo.com", "senha": "ana123" }
+
+### Senha errada -> 401
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{ "email": "admin@amparo.com", "senha": "errada" }
+
+### Registro de novo usuario
+POST {{host}}/auth/registro
+Content-Type: application/json
+
+{ "nome": "Carla Lima", "email": "carla@amparo.com", "senha": "carla123", "papel": "CUIDADOR" }
+
+### Cole o token aqui:
+@tokenAdmin = COLE_O_TOKEN_DO_ADMIN
+@tokenCuidador = COLE_O_TOKEN_DO_CUIDADOR
+
+### Quem sou eu
+GET {{host}}/auth/me
+Authorization: Bearer {{tokenAdmin}}
+
+### Com token -> 200
+GET {{host}}/cidadaos
+Authorization: Bearer {{tokenAdmin}}
+
+### CUIDADOR tentando criar cidadao -> 403
+POST {{host}}/cidadaos
+Authorization: Bearer {{tokenCuidador}}
+Content-Type: application/json
+
+{ "nome": "Teste", "dataNascimento": "1950-01-01" }
+
+### CUIDADOR escalando evento -> permitido
+POST {{host}}/eventos/1/escalar
+Authorization: Bearer {{tokenCuidador}}
+
+### ESP32 sem header -> 401
+POST {{host}}/eventos
+Content-Type: application/json
+
+{ "codigoSerial": "ESP32-0001", "tipo": "BOTAO_EMERGENCIA" }
+
+### ESP32 com X-Device-Token -> 201 (e aciona o cuidador)
+POST {{host}}/eventos
+Content-Type: application/json
+X-Device-Token: esp32-amparo-dev-token
+
+{ "codigoSerial": "ESP32-0001", "tipo": "BOTAO_EMERGENCIA", "descricao": "Botao pressionado" }
