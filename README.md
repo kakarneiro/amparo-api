@@ -1,4 +1,4 @@
-# Amparo API
+﻿# Amparo API
 
 **Global Solution 2026/2 · CitizenTech · FIAP · Java Advanced**
 
@@ -22,7 +22,9 @@ expõe tudo para o aplicativo Mobile usado pelas famílias.
 
 ## Vídeo pitch
 
-🎥 **[Link do pitch no YouTube — preencher]**
+🎥 **Pitch (3 min):** https://youtu.be/Ls9aTTCgqnk
+
+🎬 **Apresentação técnica:** [em breve]
 
 ## Relação com as outras entregas
 
