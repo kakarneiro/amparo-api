@@ -24,7 +24,7 @@ expõe tudo para o aplicativo Mobile usado pelas famílias.
 
 🎥 **Pitch (3 min):** https://youtu.be/Ls9aTTCgqnk
 
-🎬 **Apresentação técnica:** [em breve]
+🎬 **Apresentação técnica:** https://youtu.be/1gDKWM-5HFs
 
 ## Relação com as outras entregas
 
